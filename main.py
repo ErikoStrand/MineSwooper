@@ -12,7 +12,7 @@ pygame.event.set_allowed([pygame.MOUSEBUTTONDOWN])
 WIDTH, HEIGHT = 900, 900 + 100
 # has to be perfectly devisibitly
 BOARD_SQUARES = 30
-BOMBS = 90
+BOMBS = 15
 icon = pygame.image.load("gameicon.png")
 SQUARE_SIZE = int(WIDTH/BOARD_SQUARES)
 pygame.display.set_caption("MineSwooper")
@@ -243,7 +243,6 @@ while 1:
             tile.update = False
             
     pygame.draw.line(display, OUTLINE, (0, HEIGHT - 100), (WIDTH, HEIGHT - 100), 5)
-    drawTime(gameTime, 80, 30, HEIGHT - 50, SCORE_COLORS[gameTime])
     
     stopDrawing = time.time()
     startOther = time.time()         
@@ -255,12 +254,13 @@ while 1:
         drawText("TRY AGAIN?", 30, RESTART.x + 100, RESTART.y + 35, (255, 255, 255))
         if not WON:
             drawText("YOU LOST", 140, WIDTH/2, HEIGHT/2 - 50, (180, 43, 63))
-            pygame.display.flip()  
+            #left top width height
+            pygame.display.update((WIDTH/2 - 350, HEIGHT/2 - 100, 650, 140))   
     if WON:
         for tile in TILES:
             tile.shown = True
         drawText("YOU WON", 140, WIDTH/2, HEIGHT/2 - 50, (180, 43, 63))
-        pygame.display.flip()  
+        pygame.display.update((WIDTH/2 - 320, HEIGHT/2 - 100, 630, 140))
     stop = time.time()
     
     #FPS      
@@ -270,8 +270,9 @@ while 1:
         
     if diff > 0:
         FPS = int(1/diff)
+        drawTime(gameTime, 80, 30, HEIGHT - 50, SCORE_COLORS[gameTime])
         drawText(FPS, 80, WIDTH - 100, HEIGHT - 50, SCORE_COLORS[gameTime])     
-         
+        pygame.display.update(SCORE_RECT) 
+           
     stopOther = time.time()   
-    pygame.display.update(SCORE_RECT)    
     #print("Drawing: ", (stopDrawing-startDrawing), "Other: ", (stopOther-startOther), "Clicking: ", (stopClicking-startClicking))
