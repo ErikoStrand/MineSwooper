@@ -32,6 +32,7 @@ flag = pygame.transform.scale(flag, (WIDTH/BOARD_SQUARES, WIDTH/BOARD_SQUARES))
 RESTART = pygame.Rect(WIDTH/2 - 100, HEIGHT - 85, 200, 70) 
 NUMBER_COLORS = []
 SCORE_COLORS = [] 
+SCORE_RECT = (0, 900, WIDTH, 100)
 def createColors():
     blue = Color("#0000FF")
     red = list(blue.range_to(Color("#ff0000"), 9))
@@ -66,6 +67,7 @@ class Board:
         self.bombAmount: int = 0
         self.numberColor: tuple = ()
         self.flag: bool = False
+        self.update: bool = True
         
     def drawTile(self):
         if self.shown:
@@ -141,20 +143,26 @@ def checkWin():
     startWin = time.time()
     win = 0
     for tile in TILES:
-        if tile.shown: win += 1
-    print("Checked Win In: ", str(time.time()-startWin) + "s")  
+        if tile.shown: win += 1  
     if win == BOARD_SQUARES*BOARD_SQUARES - BOMBS: print("WON"); return True
-            
+def loadLevel():
+    for tile in TILES:
+        tile.drawTile()
+    pygame.display.flip()
+                    
 createClasses()
 createBombs(BOMBS)
 createBombAmount()
 createColors()
 colorNumbers()
+loadLevel()
 gameStart = time.time()
 gameTime = 0
 FPS_UPDATE = 1
 diff = 0
+stopClicking, startClicking = 0,0
 while 1:
+    display.fill((TILE), SCORE_RECT)    
     if FPS_UPDATE:
         start_fps = time.time()
         FPS_UPDATE = 0
@@ -165,6 +173,7 @@ while 1:
         if event.type == pygame.QUIT:
             sys.exit()
         if event.type == pygame.MOUSEBUTTONDOWN:
+            startClicking = time.time()
             if event.button == 1 and DEAD:
                 x, y = pygame.mouse.get_pos()
                 if RESTART.collidepoint(x, y):
@@ -176,6 +185,8 @@ while 1:
                     gameStart = time.time()
                     DEAD = False
                     WON = False
+                    loadLevel()
+                    
             if event.button == 1 and not DEAD:
                 x, y = pygame.mouse.get_pos()
                 x = int(x/SQUARE_SIZE)
@@ -200,27 +211,39 @@ while 1:
                 for tile in TILES:
                     if tile.x == x and tile.y == y:
                         tile.flag = not tile.flag
+                        if not tile.shown and not tile.flag:
+                            tile.drawTile()
+                            pygame.display.update((tile.rect))
 
-                            
-    display.fill((TILE))
+            stopClicking = time.time()   
+                         
+    startDrawing = time.time()
     for tile in TILES:
         tile.drawTile()
         if tile.shown:
             tile.flag = False
             
-        if tile.shown and tile.bombAmount > 0:
+        if tile.shown and tile.bombAmount > 0 and tile.update:
             drawText(tile.bombAmount, int(60/(BOARD_SQUARES/9)), (tile.x * SQUARE_SIZE + SQUARE_SIZE/2), (tile.y * SQUARE_SIZE + SQUARE_SIZE/2), tile.numberColor)
                
         if tile.flag:
             display.blit(flag, (tile.x * SQUARE_SIZE, tile.y * SQUARE_SIZE)) 
+            pygame.display.update((tile.rect))
             
         if tile.bomb and tile.shown:
             display.blit(bomb, (tile.x * SQUARE_SIZE + 5, tile.y * SQUARE_SIZE + 5))
-             
-    if not DEAD:
-        gameTime = int(time.time()-gameStart)                      
+            
+        if tile.shown and tile.update:
+            pygame.display.update((tile.rect))
+            tile.update = False
+            
     pygame.draw.line(display, OUTLINE, (0, HEIGHT - 100), (WIDTH, HEIGHT - 100), 5)
     drawTime(gameTime, 80, 30, HEIGHT - 50, SCORE_COLORS[gameTime])
+    
+    stopDrawing = time.time()
+    startOther = time.time()         
+    if not DEAD:
+        gameTime = int(time.time()-gameStart)                      
     
     if DEAD:
         pygame.draw.rect(display, OUTLINE, RESTART)
@@ -230,15 +253,19 @@ while 1:
     if WON:
         for tile in TILES:
             tile.shown = True
-        drawText("YOU WON", 140, WIDTH/2, HEIGHT/2 - 50, (180, 43, 63))  
-    stop = time.time()      
+        drawText("YOU WON", 140, WIDTH/2, HEIGHT/2 - 50, (180, 43, 63))
+          
+    stop = time.time()
+    
+    #FPS      
     if time.time() - start_fps > 0.25:
         diff = stop - start
         FPS_UPDATE = 1
         
     if diff > 0:
         FPS = int(1/diff)
-        drawText(FPS, 80, WIDTH - 100, HEIGHT - 50, SCORE_COLORS[gameTime])      
-        
-    pygame.display.flip()      
-    print(stop-start)
+        drawText(FPS, 80, WIDTH - 100, HEIGHT - 50, SCORE_COLORS[gameTime])     
+         
+    stopOther = time.time()   
+    pygame.display.update(SCORE_RECT)    
+    print("Drawing: ", (stopDrawing-startDrawing), "Other: ", (stopOther-startOther), "Clicking: ", (stopClicking-startClicking))
