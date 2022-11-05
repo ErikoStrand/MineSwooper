@@ -11,8 +11,8 @@ infoObject = pygame.display.Info()
 pygame.event.set_allowed([pygame.MOUSEBUTTONDOWN])
 WIDTH, HEIGHT = 900, 900 + 100
 # has to be perfectly devisibitly
-BOARD_SQUARES = 18
-BOMBS = 30
+BOARD_SQUARES = 30
+BOMBS = 90
 icon = pygame.image.load("gameicon.png")
 SQUARE_SIZE = int(WIDTH/BOARD_SQUARES)
 pygame.display.set_caption("MineSwooper")
@@ -33,6 +33,7 @@ RESTART = pygame.Rect(WIDTH/2 - 100, HEIGHT - 85, 200, 70)
 NUMBER_COLORS = []
 SCORE_COLORS = [] 
 SCORE_RECT = (0, 900, WIDTH, 100)
+sys.setrecursionlimit(3000)
 def createColors():
     blue = Color("#0000FF")
     red = list(blue.range_to(Color("#ff0000"), 9))
@@ -108,7 +109,6 @@ def checkBombAroundTile(x, y):
                     if tile.bomb == True:
                         amount += 1
     return amount
-
 def checkSafeAroundTile(x, y):
     for tile in TILES:
         if tile.x == x and tile.y == y:
@@ -123,7 +123,7 @@ def checkSafeAroundTile(x, y):
                 checkSafeAroundTile(x - 1, y)
                 checkSafeAroundTile(x, y + 1)
                 checkSafeAroundTile(x, y - 1)
-
+                         
     
                         
 def createBombAmount():
@@ -139,12 +139,13 @@ def createBombAmount():
 def colorNumbers():
     for tile in TILES:
         tile.numberColor = NUMBER_COLORS[tile.bombAmount]
+        
 def checkWin():
-    startWin = time.time()
     win = 0
     for tile in TILES:
         if tile.shown: win += 1  
-    if win == BOARD_SQUARES*BOARD_SQUARES - BOMBS: print("WON"); return True
+    if win == BOARD_SQUARES*BOARD_SQUARES - BOMBS: return True
+    
 def loadLevel():
     for tile in TILES:
         tile.drawTile()
@@ -156,6 +157,7 @@ createBombAmount()
 createColors()
 colorNumbers()
 loadLevel()
+
 gameStart = time.time()
 gameTime = 0
 FPS_UPDATE = 1
@@ -177,6 +179,7 @@ while 1:
             if event.button == 1 and DEAD:
                 x, y = pygame.mouse.get_pos()
                 if RESTART.collidepoint(x, y):
+                    print("\n")
                     TILES = []
                     createClasses()
                     createBombs(BOMBS)
@@ -193,12 +196,14 @@ while 1:
                 y = int(y/SQUARE_SIZE)
                 for tile in TILES:
                     if tile.x == x and tile.y == y:
-                        if tile.bomb:
+                        if tile.bomb and not tile.flag:
                             DEAD = True
                             tile.shown = True
                             
                         if not tile.bomb and not tile.flag:
+                            startSafe = time.time()
                             checkSafeAroundTile(x, y)
+                            print("Opened Area In: ", str(time.time()-startSafe) + "s")
                             tile.shown = True
                             if checkWin():
                                 WON = True
@@ -249,12 +254,13 @@ while 1:
         pygame.draw.rect(display, OUTLINE, RESTART)
         drawText("TRY AGAIN?", 30, RESTART.x + 100, RESTART.y + 35, (255, 255, 255))
         if not WON:
-            drawText("YOU LOST", 140, WIDTH/2, HEIGHT/2 - 50, (180, 43, 63))  
+            drawText("YOU LOST", 140, WIDTH/2, HEIGHT/2 - 50, (180, 43, 63))
+            pygame.display.flip()  
     if WON:
         for tile in TILES:
             tile.shown = True
         drawText("YOU WON", 140, WIDTH/2, HEIGHT/2 - 50, (180, 43, 63))
-          
+        pygame.display.flip()  
     stop = time.time()
     
     #FPS      
@@ -268,4 +274,4 @@ while 1:
          
     stopOther = time.time()   
     pygame.display.update(SCORE_RECT)    
-    print("Drawing: ", (stopDrawing-startDrawing), "Other: ", (stopOther-startOther), "Clicking: ", (stopClicking-startClicking))
+    #print("Drawing: ", (stopDrawing-startDrawing), "Other: ", (stopOther-startOther), "Clicking: ", (stopClicking-startClicking))
