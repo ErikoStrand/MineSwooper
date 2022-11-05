@@ -24,26 +24,31 @@ SHOWN_COLOR = (60, 60, 60)
 clock = pygame.time.Clock()
 TILES = []
 DEAD = False
+WON = False
 bomb = pygame.image.load("bomb.png")
 bomb = pygame.transform.scale(bomb, (WIDTH/BOARD_SQUARES - 10, WIDTH/BOARD_SQUARES - 10))
 flag = pygame.image.load("flag.png")
 flag = pygame.transform.scale(flag, (WIDTH/BOARD_SQUARES, WIDTH/BOARD_SQUARES))
 RESTART = pygame.Rect(WIDTH/2 - 100, HEIGHT - 85, 200, 70) 
-NUMBER_COLORS = [] 
+NUMBER_COLORS = []
+SCORE_COLORS = [] 
 def createColors():
     blue = Color("#0000FF")
     red = list(blue.range_to(Color("#ff0000"), 9))
     for color in red:
         NUMBER_COLORS.append(ImageColor.getrgb(str(color)))
-        
+
+    for i in range(999):
+        SCORE_COLORS.append((np.random.randint(1, 255), np.random.randint(1, 255), np.random.randint(1, 255),))
+         
 def drawText(text, font_size, x, y, color):
-    font = pygame.font.Font("8-bit-hud.ttf", font_size)
+    font = pygame.font.Font("bitlow.ttf", font_size)
     a, b = pygame.font.Font.size(font, str(text))
     draw = font.render(str(text), False, color)
     display.blit(draw, (x - a/2, y - b/2))
     
 def drawTime(text, font_size, x, y, color):
-    font = pygame.font.Font("8-bit-hud.ttf", font_size)
+    font = pygame.font.Font("bitlow.ttf", font_size)
     a, b = pygame.font.Font.size(font, str(text))
     draw = font.render(str(text), False, color)
     display.blit(draw, (x, y - b/2))    
@@ -64,7 +69,9 @@ class Board:
         
     def drawTile(self):
         if self.shown:
-            self.color =  SHOWN_COLOR
+            self.color = SHOWN_COLOR
+        if self.bomb and self.shown:
+            self.color = (180, 43, 63)
         pygame.draw.rect(self.display, self.color, self.rect)
         pygame.draw.rect(self.display, self.outline, self.rect, 2)        
 
@@ -127,6 +134,13 @@ def createBombAmount():
 def colorNumbers():
     for tile in TILES:
         tile.numberColor = NUMBER_COLORS[tile.bombAmount]
+def checkWin():
+    startWin = time.time()
+    win = 0
+    for tile in TILES:
+        if tile.shown: win += 1
+    print("Checked Win In: ", str(time.time()-startWin) + "s")  
+    if win == BOARD_SQUARES*BOARD_SQUARES - BOMBS: print("WON"); return True
             
 createClasses()
 createBombs(BOMBS)
@@ -153,7 +167,7 @@ while 1:
                     colorNumbers()
                     gameStart = time.time()
                     DEAD = False
-                    
+                    WON = False
             if event.button == 1 and not DEAD:
                 x, y = pygame.mouse.get_pos()
                 x = int(x/SQUARE_SIZE)
@@ -166,7 +180,10 @@ while 1:
                             
                         if not tile.bomb and not tile.flag:
                             checkSafeAroundTile(x, y)
-                            tile.shown = True   
+                            tile.shown = True
+                            if checkWin():
+                                WON = True
+                                DEAD = True   
                              
             if event.button == 3:
                 x, y = pygame.mouse.get_pos()
@@ -184,7 +201,7 @@ while 1:
             tile.flag = False
             
         if tile.shown and tile.bombAmount > 0:
-            drawText(tile.bombAmount, int(30/(BOARD_SQUARES/9)), (tile.x * SQUARE_SIZE + SQUARE_SIZE/2), (tile.y * SQUARE_SIZE + SQUARE_SIZE/2), tile.numberColor)
+            drawText(tile.bombAmount, int(60/(BOARD_SQUARES/9)), (tile.x * SQUARE_SIZE + SQUARE_SIZE/2), (tile.y * SQUARE_SIZE + SQUARE_SIZE/2), tile.numberColor)
                
         if tile.flag:
             display.blit(flag, (tile.x * SQUARE_SIZE, tile.y * SQUARE_SIZE)) 
@@ -195,12 +212,18 @@ while 1:
     if not DEAD:
         gameTime = int(time.time()-gameStart)                      
     pygame.draw.line(display, OUTLINE, (0, HEIGHT - 100), (WIDTH, HEIGHT - 100), 5)
-    drawTime(gameTime, 40, 30, HEIGHT - 50, (255, 255, 255))
+    drawTime(gameTime, 80, 30, HEIGHT - 50, SCORE_COLORS[gameTime])
     
     if DEAD:
         pygame.draw.rect(display, OUTLINE, RESTART)
-        drawText("Try Again?", 15, RESTART.x + 100, RESTART.y + 35, (255, 255, 255))
-        
+        drawText("TRY AGAIN?", 30, RESTART.x + 100, RESTART.y + 35, (255, 255, 255))
+        if not WON:
+            drawText("YOU LOST", 140, WIDTH/2, HEIGHT/2 - 50, (180, 43, 63))  
+    if WON:
+        for tile in TILES:
+            tile.shown = True
+        drawText("YOU WON", 140, WIDTH/2, HEIGHT/2 - 50, (180, 43, 63))  
+          
     pygame.display.flip()
     stop = time.time()        
-    #print(stop-start)
+    print(stop-start)
