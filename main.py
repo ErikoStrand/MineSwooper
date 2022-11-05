@@ -11,8 +11,8 @@ infoObject = pygame.display.Info()
 pygame.event.set_allowed([pygame.MOUSEBUTTONDOWN])
 WIDTH, HEIGHT = 900, 900 + 100
 # has to be perfectly devisibitly
-BOARD_SQUARES = 9
-BOMBS = 7
+BOARD_SQUARES = 18
+BOMBS = 30
 icon = pygame.image.load("gameicon.png")
 SQUARE_SIZE = int(WIDTH/BOARD_SQUARES)
 pygame.display.set_caption("MineSwooper")
@@ -89,7 +89,10 @@ def createBombs(bombs):
         y = np.random.randint(0, BOARD_SQUARES)
         for tile in TILES:    
             if tile.y == y and tile.x == x:
-                tile.bomb = True   
+                if not tile.bomb:
+                    tile.bomb = True
+                elif tile.bomb:
+                    createBombs(1)   
     print("Bombs Placed In:", str(time.time()-startBomb) + "s")    
     
 def checkBombAroundTile(x, y):
@@ -149,9 +152,14 @@ createColors()
 colorNumbers()
 gameStart = time.time()
 gameTime = 0
-
+FPS_UPDATE = 1
+diff = 0
 while 1:
-    dt = clock.tick(240)
+    if FPS_UPDATE:
+        start_fps = time.time()
+        FPS_UPDATE = 0
+    
+    
     start = time.time()
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -223,7 +231,14 @@ while 1:
         for tile in TILES:
             tile.shown = True
         drawText("YOU WON", 140, WIDTH/2, HEIGHT/2 - 50, (180, 43, 63))  
-          
-    pygame.display.flip()
-    stop = time.time()        
+    stop = time.time()      
+    if time.time() - start_fps > 0.25:
+        diff = stop - start
+        FPS_UPDATE = 1
+        
+    if diff > 0:
+        FPS = int(1/diff)
+        drawText(FPS, 80, WIDTH - 100, HEIGHT - 50, SCORE_COLORS[gameTime])      
+        
+    pygame.display.flip()      
     print(stop-start)
