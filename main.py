@@ -11,8 +11,8 @@ infoObject = pygame.display.Info()
 pygame.event.set_allowed([pygame.MOUSEBUTTONDOWN])
 WIDTH, HEIGHT = 900, 900 + 100
 # has to be perfectly devisibitly
-BOARD_SQUARES = 30
-BOMBS = 15
+BOARD_SQUARES = 60
+BOMBS = 30
 icon = pygame.image.load("gameicon.png")
 SQUARE_SIZE = int(WIDTH/BOARD_SQUARES)
 pygame.display.set_caption("MineSwooper")
@@ -93,22 +93,13 @@ def createBombs(bombs):
         for tile in TILES:    
             if tile.y == y and tile.x == x:
                 if not tile.bomb:
+                    createBombAmount(x, y)
                     tile.bomb = True
+
                 elif tile.bomb:
                     createBombs(1)   
     print("Bombs Placed In:", str(time.time()-startBomb) + "s")    
     
-def checkBombAroundTile(x, y):
-    amount = 0
-    topX = x - 1
-    topY = y - 1
-    for tile in TILES:
-        for x in range(3):
-            for y in range(3):   
-                if tile.x == topX + x and tile.y == topY + y:
-                    if tile.bomb == True:
-                        amount += 1
-    return amount
 def checkSafeAroundTile(x, y):
     for tile in TILES:
         if tile.x == x and tile.y == y:
@@ -126,15 +117,16 @@ def checkSafeAroundTile(x, y):
                          
     
                         
-def createBombAmount():
-    startBombAmount = time.time()
-    for x in range(BOARD_SQUARES):
-        for y in range(BOARD_SQUARES):
-            amount = checkBombAroundTile(x, y)
-            for tile in TILES:
-                if tile.x == x and tile.y == y:
-                    tile.bombAmount += amount
-    print("Checked Bomb Amount In:", str(time.time()-startBombAmount) + "s")       
+def createBombAmount(x, y):
+    topX = x - 1
+    topY = y - 1
+    for tile in TILES:
+        for x in range(3):
+            for y in range(3):   
+                if tile.x == topX + x and tile.y == topY + y:
+                    if tile.x != x and tile.y != y:
+                        tile.bombAmount += 1
+                        
     
 def colorNumbers():
     for tile in TILES:
@@ -152,8 +144,9 @@ def loadLevel():
     pygame.display.flip()
                     
 createClasses()
+startBombAmount = time.time()
 createBombs(BOMBS)
-createBombAmount()
+print("Checked Bomb Amount In:", str(time.time()-startBombAmount) + "s")      
 createColors()
 colorNumbers()
 loadLevel()
@@ -183,7 +176,6 @@ while 1:
                     TILES = []
                     createClasses()
                     createBombs(BOMBS)
-                    createBombAmount()
                     colorNumbers()
                     gameStart = time.time()
                     DEAD = False
