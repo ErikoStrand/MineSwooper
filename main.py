@@ -95,7 +95,6 @@ def createBombs(bombs):
                 if not tile.bomb:
                     tile.bomb = True
                     createBombAmount(x, y)
-                    
                 elif tile.bomb:
                     createBombs(1)   
     print("Bombs Placed In:", str(time.time()-startBomb) + "s")    
@@ -114,9 +113,7 @@ def checkSafeAroundTile(x, y):
                 checkSafeAroundTile(x - 1, y)
                 checkSafeAroundTile(x, y + 1)
                 checkSafeAroundTile(x, y - 1)
-                         
-    
-                        
+                                 
 def createBombAmount(x, y):
     topX = x - 1
     topY = y - 1
@@ -124,8 +121,7 @@ def createBombAmount(x, y):
         for x in range(3):
             for y in range(3):   
                 if tile.x == topX + x and tile.y == topY + y:
-                    if tile.x != x and tile.y != y:
-                        tile.bombAmount += 1
+                    tile.bombAmount += 1
                         
     
 def colorNumbers():
@@ -218,10 +214,14 @@ while 1:
     for tile in TILES:
         if tile.shown:
             tile.flag = False
-            tile.drawTile()
             
-        if tile.shown and tile.bombAmount > 0 and tile.update:
-            drawText(tile.bombAmount, int(60/(BOARD_SQUARES/9)), (tile.x * SQUARE_SIZE + SQUARE_SIZE/2), (tile.y * SQUARE_SIZE + SQUARE_SIZE/2), tile.numberColor)       
+        if tile.shown and tile.update:
+            tile.drawTile()   
+            
+        if tile.shown and tile.bombAmount > 0 and tile.update and not tile.bomb:
+            drawText(tile.bombAmount, int(60/(BOARD_SQUARES/9)), (tile.x * SQUARE_SIZE + SQUARE_SIZE/2), (tile.y * SQUARE_SIZE + SQUARE_SIZE/2), tile.numberColor)
+        
+                   
         if tile.flag:
             display.blit(flag, (tile.x * SQUARE_SIZE, tile.y * SQUARE_SIZE)) 
             pygame.display.update((tile.rect))
