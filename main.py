@@ -40,8 +40,8 @@ def createColors():
     for color in red:
         NUMBER_COLORS.append(ImageColor.getrgb(str(color)))
 
-    for i in range(999):
-        SCORE_COLORS.append((np.random.randint(1, 255), np.random.randint(1, 255), np.random.randint(1, 255),))
+    for _ in range(999):
+        SCORE_COLORS.append((np.random.randint(1, 255), np.random.randint(1, 255), np.random.randint(1, 255)))
          
 def drawText(text, font_size, x, y, color):
     font = pygame.font.Font("bitlow.ttf", font_size)
