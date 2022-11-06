@@ -11,8 +11,8 @@ infoObject = pygame.display.Info()
 pygame.event.set_allowed([pygame.MOUSEBUTTONDOWN])
 WIDTH, HEIGHT = 900, 900 + 100
 # has to be perfectly devisibitly
-BOARD_SQUARES = 60
-BOMBS = 30
+BOARD_SQUARES = 30
+BOMBS = 90
 icon = pygame.image.load("gameicon.png")
 SQUARE_SIZE = int(WIDTH/BOARD_SQUARES)
 pygame.display.set_caption("MineSwooper")
@@ -93,9 +93,9 @@ def createBombs(bombs):
         for tile in TILES:    
             if tile.y == y and tile.x == x:
                 if not tile.bomb:
-                    createBombAmount(x, y)
                     tile.bomb = True
-
+                    createBombAmount(x, y)
+                    
                 elif tile.bomb:
                     createBombs(1)   
     print("Bombs Placed In:", str(time.time()-startBomb) + "s")    
@@ -216,13 +216,12 @@ while 1:
                          
     startDrawing = time.time()
     for tile in TILES:
-        tile.drawTile()
         if tile.shown:
             tile.flag = False
+            tile.drawTile()
             
         if tile.shown and tile.bombAmount > 0 and tile.update:
-            drawText(tile.bombAmount, int(60/(BOARD_SQUARES/9)), (tile.x * SQUARE_SIZE + SQUARE_SIZE/2), (tile.y * SQUARE_SIZE + SQUARE_SIZE/2), tile.numberColor)
-               
+            drawText(tile.bombAmount, int(60/(BOARD_SQUARES/9)), (tile.x * SQUARE_SIZE + SQUARE_SIZE/2), (tile.y * SQUARE_SIZE + SQUARE_SIZE/2), tile.numberColor)       
         if tile.flag:
             display.blit(flag, (tile.x * SQUARE_SIZE, tile.y * SQUARE_SIZE)) 
             pygame.display.update((tile.rect))
